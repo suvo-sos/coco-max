@@ -3,7 +3,7 @@
 import { usePlayer } from '@videojs/react/video';
 
 /**
- * Docomo — the seek bar, reinvented.
+ * Coco — the seek bar, reinvented.
  *
  * The timeline is a staircase of 12 steps rising left to right.
  * A squashy blue ball hops up the steps as the video plays and
@@ -16,7 +16,7 @@ import { usePlayer } from '@videojs/react/video';
  */
 const STEPS = 12;
 
-export function Docomo() {
+export function Coco() {
   const currentTime = usePlayer((s) => s.currentTime) ?? 0;
   const duration = usePlayer((s) => s.duration) ?? 0;
   const paused = usePlayer((s) => s.paused) ?? true;

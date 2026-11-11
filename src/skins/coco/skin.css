@@ -1936,7 +1936,7 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Docomo — black, slate, orange, pale grey. Nothing else.            */
+/* Coco — black, slate, orange, pale grey. Nothing else.            */
 /* The real slider underneath is untouched: keyboard, focus, menus    */
 /* and screen-reader behaviour all stay exactly as Scaffold built    */
 /* them. These rules only change how it looks.                        */
@@ -2140,7 +2140,7 @@
 
 }
 
-/* Docomo clean mode: by default the video shows nothing at all,
+/* Coco clean mode: by default the video shows nothing at all,
    not even on hover. Move the cursor to the bottom part and the
    seekbar, the time and all the buttons show in the bottom bar.
    Play/pause is also a click on the video, double-click is

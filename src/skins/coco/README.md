@@ -1,6 +1,6 @@
-# Docomo skin — saved copy
+# Coco skin — saved copy
 
-This folder is a **snapshot of the custom Docomo skin** taken before the preview was
+This folder is a **snapshot of the custom Coco skin** taken before the preview was
 switched back to the stock Video.js default skin. Nothing here is imported by the app
 right now, so it has no effect on the running player.
 
@@ -16,7 +16,7 @@ What's in it:
   skip flashes, and the right-drag seek.
 - `shared/` — the individual controls (play button, volume, time slider, menus, screen
   controls, feedback layers).
-- `docomo.tsx` — the older decorative staircase seekbar idea (unused, kept for reference).
+- `coco.tsx` — the older decorative staircase seekbar idea (unused, kept for reference).
 
 ## How to switch back to it
 
@@ -26,7 +26,7 @@ In `apps/preview/src/frame/player.tsx`, replace the stock skin import and CSS:
 -import { Video, VideoPlayer, VideoSkin } from '@videojs/react/video';
 -import '@videojs/react/video/skin.css';
 +import { Video, VideoPlayer } from '@videojs/react/video';
-+import { VideoSkin } from '@/skins/docomo/skin';
++import { VideoSkin } from '@/skins/coco/skin';
 ```
 
 The skin imports `../../styles/video/scaffold.css` and `./skin.css` itself, so no extra
