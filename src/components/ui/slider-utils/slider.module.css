@@ -1,0 +1,253 @@
+/*
+  The slider's own chrome, as a CSS module so the skin can use it without
+  pulling in Tailwind. Every value falls back to a sane default, so the tokens
+  can be defined wherever the slider is used — the skin sets them on `.ko-skin`
+  to turn the light defaults into glass.
+*/
+
+.root {
+  --track-height: 4px;
+  --thumb-size: 12px;
+  --control-pad: 8px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-family: inherit;
+  color: var(--foreground, #111111);
+}
+
+.root[data-disabled] {
+  opacity: 0.5;
+}
+
+.root[data-dragging] {
+  cursor: grabbing;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--text-xs, 0.75rem);
+  line-height: 1.4;
+}
+
+.label {
+  color: var(--text-secondary, #565656);
+}
+
+.readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--foreground, #111111);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash {
+  color: var(--text-muted, #8a8a8a);
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.start,
+.end {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.control {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-block: var(--control-pad);
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* The track, the ticks and the fill that clips to the value. */
+.track {
+  position: relative;
+  height: var(--track-height);
+  border-radius: var(--radius-pill, 9999px);
+  background-color: var(--control-track, oklch(89.5% 0 0));
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill, 9999px);
+  background-color: var(--control-fill, oklch(23% 0 0));
+  will-change: clip-path;
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  width: 2px;
+  height: 2px;
+  margin-block-start: -1px;
+  margin-inline-start: -1px;
+  border-radius: 50%;
+  background-color: var(--control-tick, oklch(100% 0 0 / 0.55));
+}
+
+/* The thumb rides a layer as wide as the track, so a percentage transform
+   places it without measuring — including on the server. */
+.thumbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.thumbLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  margin-block-start: calc(var(--thumb-size) / -2);
+  margin-inline-end: calc(var(--thumb-size) / -2);
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--control-thumb, #ffffff);
+  box-shadow: var(--control-thumb-shadow, 0 0 0 0.5px oklch(0% 0 0 / 0.07), 0 1px 2px oklch(0% 0 0 / 0.14));
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+}
+
+.thumb:active {
+  cursor: grabbing;
+}
+
+/* Focus stays visible: the ring is the token's colour, so a dark panel can
+   hand it white while a light page hands it ink. */
+.thumb:focus-visible {
+  outline: 2px solid var(--focus-ring, #111111);
+  outline-offset: 3px;
+}
+
+.thumb[data-quiet]:focus-visible {
+  outline-color: transparent;
+}
+
+/* The bubble above the thumb, holding the value on rolling digits. It is
+   positioned with `translate` so motion keeps the `transform` for scale. */
+.bubbleAnchor {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  translate: -50% calc(-100% - var(--bubble-lift, 3px));
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-pill, 9999px);
+  background-color: var(--bubble-bg, oklch(23% 0 0));
+  color: var(--bubble-fg, #ffffff);
+  font-size: var(--bubble-text, 0.6875rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--bubble-shadow, 0 6px 18px oklch(0% 0 0 / 0.18));
+}
+
+/* A formatted value: the width follows new columns, the digits roll. */
+.number {
+  display: inline-flex;
+  align-items: center;
+}
+
+.column {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1em;
+  overflow: hidden;
+}
+
+.sizer {
+  visibility: hidden;
+}
+
+.glyph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.symbol {
+  display: inline-block;
+}
+
+/* Marks under the track. */
+.marks {
+  position: relative;
+  height: 1em;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-muted, #8a8a8a);
+}
+
+.markLabel {
+  position: absolute;
+  top: 0;
+  translate: -50% 0;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.markLabel[data-on] {
+  color: var(--foreground, #111111);
+}
+
+.markLabel[data-edge="start"] {
+  translate: 0 0;
+}
+
+.markLabel[data-edge="end"] {
+  translate: -100% 0;
+}
+
+/* The label for screen readers when the visible header is turned off. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

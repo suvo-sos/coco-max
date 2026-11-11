@@ -1,0 +1,14 @@
+node_modules
+dist
+*.local
+.DS_Store
+*.mp4
+*.mov
+*.webm
+*.mkv
+
+# Hosting CLIs keep their project links here.
+.vercel
+.netlify
+.wrangler
+.env*.local

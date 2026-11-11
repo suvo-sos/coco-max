@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "videojs": {
+      "source": "videojs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/videojs/SKILL.md",
+      "computedHash": "47653029213dfaef9f544b87c165ec5b81dd31376204053db513e9b510eaf51d"
+    },
+    "videojs-skin": {
+      "source": "videojs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/videojs-skin/SKILL.md",
+      "computedHash": "f5e168b97aed56daeeaa617320f57d811b83d542c9f4452417df34604fb1c98e"
+    },
+    "videojs-ui": {
+      "source": "videojs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/videojs-ui/SKILL.md",
+      "computedHash": "021504a670c5f54c2595236961033f4b1c864a8f7fd7998efa79e5cd386a9e65"
+    }
+  }
+}
