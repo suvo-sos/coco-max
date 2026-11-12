@@ -2,50 +2,43 @@
 
 import { useEffect } from 'react';
 
-/** How long the cursor can sit still over the player before the
-    bottom bar hides itself. */
+/** How long the pointer can rest before the panel (beach and controls) drops. */
 const IDLE_MS = 1500;
 
-/**
- * The pointer must travel at least this far (in pixels) from where
- * it last really was. Smaller shakes — a shaky hand, a sensitive
- * mouse — are ignored: they do not wake the bar and do not restart
- * the 1.5s timer.
- */
+/** Only travel this far counts as real movement — a shaky hand does not. */
 const MOVE_THRESHOLD_PX = 20;
 
-/** How often the visibility loop re-checks (in milliseconds). */
+/** How often the loop re-checks (milliseconds). */
 const TICK_MS = 100;
 
 /**
- * The control bar (seekbar + keys) is driven by one loop, not by a
- * chain of hover events — so it keeps working no matter how weird
- * the user is with the mouse, and as many times as they repeat it.
+ * The player's own controls stay up whenever the video is paused, and they
+ * only auto-hide after a movement while it plays. Coco wants the whole beach
+ * panel to drop out of the tile as soon as the pointer stops or leaves,
+ * paused or not, so this loop sets `data-ko-panel-hidden` on the skin when
+ * none of the reasons to stay open apply:
  *
- * Every 100ms the loop asks two questions:
- *   1. Is the cursor over the control bar right now?
- *   2. Has the cursor really moved in the last 1.5s?
- * The bar shows only when both are true. It sets
- * `data-ko-bar-visible` on the skin root; the CSS in skin.css
- * shows the bar while it is set. Keyboard focus inside the bar
- * also shows it, so tabbing to the seekbar still works.
+ *   1. the pointer is over the panel itself,
+ *   2. the pointer has really moved in the last 1.5s,
+ *   3. a control has keyboard focus,
+ *   4. a slider is mid-drag or the player is mid right-drag seek,
+ *   5. a menu or the volume popover is open (their trigger says so).
+ *
+ * The CSS in glass.css turns that attribute into the slide-down; the picture
+ * is never touched, only the panel over it.
  */
 export function VideoIdleHide() {
   useEffect(() => {
     const root = document.querySelector('.ko-skin');
-    // The visible bar is the top panel; the bottom one is hidden in
-    // this skin, but fall back to it if a skin ever swaps them.
-    const bar =
-      document.querySelector('.ko-skin .video-controls-top') ??
-      document.querySelector('.ko-skin .video-controls-bottom');
+    const bar = document.querySelector('.ko-skin .vo-bar');
     if (!root || !bar) return;
 
-    let lastRealMove = 0;
+    let insidePlayer = true;
+    let lastRealMove = Date.now();
     let lastX: number | null = null;
     let lastY: number | null = null;
     let pointerX = -1;
     let pointerY = -1;
-    let insidePlayer = false;
 
     const tick = () => {
       const rect = bar.getBoundingClientRect();
@@ -55,28 +48,20 @@ export function VideoIdleHide() {
         pointerX <= rect.right &&
         pointerY >= rect.top &&
         pointerY <= rect.bottom;
-      const idle = Date.now() - lastRealMove > IDLE_MS;
-      // Moving anywhere in the player wakes the bar for 1.5s; resting
-      // on the bar itself keeps it awake, so hovering it never fights
-      // the timer.
-      const awake = insidePlayer && !idle;
-      // Only a keyboard (Tab) focus keeps the bar open. Clicking the
-      // seekbar focuses its thumb too, and that click focus must not
-      // pin the bar open — otherwise the bar never hides until
-      // something else is clicked. :focus-visible is exactly that
-      // distinction: it matches for Tab focus, not for click focus.
+      const awake = insidePlayer && Date.now() - lastRealMove <= IDLE_MS;
       const active = document.activeElement;
       const focused = !!active && bar.contains(active) && active.matches(':focus-visible');
       const scrubbing = root.hasAttribute('data-ko-scrubbing');
-      const volumeOpen = !!root.querySelector('.ko-volume[data-open]');
-      if (scrubbing || overBar || awake || focused || volumeOpen) {
-        root.setAttribute('data-ko-bar-visible', '');
+      const dragging = !!root.querySelector('[data-dragging]');
+      const expanded = !!bar.querySelector('[aria-expanded="true"]');
+
+      if (overBar || awake || focused || scrubbing || dragging || expanded) {
+        root.removeAttribute('data-ko-panel-hidden');
       } else {
-        root.removeAttribute('data-ko-bar-visible');
+        root.setAttribute('data-ko-panel-hidden', '');
       }
     };
 
-    /** Only real movement counts. Tiny shakes are ignored. */
     const onMove = (event: Event) => {
       const pointer = event as PointerEvent;
       pointerX = pointer.clientX;
@@ -131,7 +116,7 @@ export function VideoIdleHide() {
       root.removeEventListener('mouseleave', onLeave);
       document.removeEventListener('focusin', tick);
       document.removeEventListener('focusout', tick);
-      root.removeAttribute('data-ko-bar-visible');
+      root.removeAttribute('data-ko-panel-hidden');
     };
   }, []);
 

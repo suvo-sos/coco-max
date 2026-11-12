@@ -5,21 +5,8 @@
 
 body {
   margin: 0;
-  /* Crystal, not pastel: a clean cool-white page with one soft light tilt
-     running across it, so the glass has a clean edge of light to bend. */
-  background-color: #f2f5f9;
-  background-image:
-    linear-gradient(
-      118deg,
-      rgb(255 255 255 / 0.95) 0%,
-      rgb(255 255 255 / 0.55) 22%,
-      rgb(255 255 255 / 0) 46%,
-      rgb(255 255 255 / 0) 64%,
-      rgb(206 221 240 / 0.5) 100%
-    ),
-    linear-gradient(180deg, rgb(255 255 255 / 0.6), rgb(226 234 244 / 0.55));
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  /* The page behind the player. */
+  background-color: #fcf2e5;
 }
 
 /* No scrollbar strip down the right edge of the page; wheel, trackpad and keys still scroll. */
@@ -46,22 +33,9 @@ body::-webkit-scrollbar {
   justify-content: center;
 }
 
-/* The liquid-glass sheet over the whole page: backdrop blur plus the SVG
-   distortion, so the pastel light behind it ripples instead of sitting flat. */
+/* The page is one flat colour now; no glass sheet over it. */
 .hop-page::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-color: rgb(255 255 255 / 0.04);
-  box-shadow:
-    inset 0 0 120px -60px rgb(255 255 255 / 0.9),
-    inset 0 0 0 1px rgb(255 255 255 / 0.3);
-  backdrop-filter: blur(0.2px);
-  -webkit-backdrop-filter: blur(0.2px);
-  filter: url(#glass-distortion);
-  -webkit-filter: url(#glass-distortion);
+  display: none;
 }
 
 .preview-player {
@@ -88,7 +62,9 @@ live-audio-player {
   display: contents;
 }
 
-/* The player and the uploader under it. */
+/* The player and the uploader under it. The stage keeps the picture to a
+   workbench size instead of filling the window, so the control panel has room
+   to be seen and judged at the scale it will really be used at. */
 .preview-stage {
   position: relative;
   z-index: 1;
@@ -97,7 +73,7 @@ live-audio-player {
   align-items: center;
   gap: 20px;
   width: 100%;
-  max-width: calc(100vw - 32px);
+  max-width: min(1100px, calc(100vw - 32px));
   margin: 0 auto;
 }
 

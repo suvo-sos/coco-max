@@ -66,13 +66,13 @@
   --bubble-shadow: 0 6px 18px rgb(0 0 0 / 0.45);
   --text-secondary: rgb(255 255 255 / 0.72);
   --foreground: #ffffff;
-  /* The roundness scale. Each level is one number, so every nested corner is
-     parallel to the one around it instead of being an unrelated value:
-     plate 43 → control 33 → settings card 18 → row 12 → circles 50%.
-     The card is deliberately the softest-cornered of the panels: it is small,
-     so the bar's 33px reads as a stadium at that size. */
-  --vo-radius-plate: 43px;
-  --vo-radius-panel: 33px;
+  /* The roundness scale. The tile stays square — the picture runs to a hard
+     edge — while the control is a floating island with a 30px corner, and
+     everything that floats over the picture keeps a corner of its own:
+     settings card 18px, rows 12px, circles 50%. Nested corners stay parallel
+     rather than inventing new numbers. */
+  --vo-radius-plate: 24px;
+  --vo-radius-panel: 30px;
   --vo-radius-card: 18px;
   --vo-radius-row: 12px;
   --vo-ease: cubic-bezier(0.22, 0.78, 0.2, 1);
@@ -158,44 +158,736 @@
   inset-inline: 0;
   bottom: 0;
   display: flex;
+  /* The deck sits in the middle of the foot of the picture. */
   justify-content: center;
-  /* The plate's own rim holds the picture in, so the dock adds the rest of the
-     gap between the bar and the picture's edge. */
-  padding: 8px;
+  padding: 16px;
   pointer-events: none;
 }
 
+/* The dock's only child: a bare box, so the cube is the whole control. */
 .ko-skin .vo-bar {
   pointer-events: auto;
-  width: 100%;
-  /* Full width of the dock: the panel reaches the picture's edges instead of
-     stopping at a 36rem pill. */
-  max-width: none;
-  padding: 12px 14px;
-  border: 0;
-  border-radius: var(--vo-radius-panel);
-  /* The liquid glass: a dark tint under the SVG refraction, plus the edge
-     stack. This is the panel the keys live on. */
-  background: var(--vo-dark);
-  --vo-liquid: blur(0px) url(#glass-distortion) blur(0px) saturate(1.5) brightness(1.1);
-  backdrop-filter: var(--vo-liquid);
-  -webkit-backdrop-filter: var(--vo-liquid);
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
-  font-size: 13px;
-  line-height: 1;
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.15),
-    inset 1.5px 1.5px 0 rgb(255 255 255 / 0.5),
-    inset 0 0 12px rgb(255 255 255 / 0.2),
-    0 8px 32px rgb(0 0 0 / 0.2);
-  transition: opacity 260ms var(--vo-ease);
-}
-
-/* The glass layer: the backdrop behind the panel, gently frosted, rippled by the SVG filter. */
-.ko-skin .vo-bar {
   position: relative;
   isolation: isolate;
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--vo-ink);
+  font-size: 13px;
+  line-height: 1;
+  /* It drops out of the tile when the pointer leaves and comes back up on
+     movement, the same as the old panel did. */
+  transition:
+    opacity 240ms var(--vo-ease),
+    transform 360ms var(--vo-ease);
+}
+
+/* The control: one flat circle, bottom-left, carrying the play/pause glyph. */
+.ko-skin .vo-bar .media-play-button.vo-cube {
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--vo-play-ink);
+  background-color: var(--vo-cube);
+  background-image: none;
+  box-shadow: 0 2px 10px rgb(16 42 56 / 0.22);
+  transition:
+    transform 140ms ease-out,
+    filter 140ms ease-out,
+    background-color 150ms ease-out;
+}
+
+.ko-skin .vo-bar .media-play-button.vo-cube .vo-cube-icon {
+  width: 22px;
+  height: 22px;
+}
+
+@media (hover: hover) {
+  .ko-skin .vo-bar .media-play-button.vo-cube:hover {
+    background-color: var(--vo-cube);
+    box-shadow: 0 2px 10px rgb(16 42 56 / 0.22);
+    filter: brightness(1.06);
+    transform: scale(1.04);
+  }
+}
+
+.ko-skin .vo-bar .media-play-button.vo-cube:active {
+  transform: scale(0.96);
+}
+
+.ko-skin .vo-bar .media-play-button.vo-cube:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+  box-shadow: 0 2px 10px rgb(16 42 56 / 0.22);
+}
+
+/* ------------------------------------------------------------------
+   The volume bar. A short capsule standing on top of the play key, only
+   while the pointer is on the key: the cream fill climbs from the
+   bottom, and the level prints in the middle of the capsule.
+   ------------------------------------------------------------------ */
+
+/* The hotspot: the visible capsule plus the 10px it floats above the key,
+   so the pointer can travel from the circle straight onto the bar without
+   ever leaving the control. */
+.ko-skin .vo-volume {
+  --vo-volume-level: 100%;
+  position: absolute;
+  left: 4px;
+  /* Flush with the top of the key — the gap under the capsule is padding,
+     not empty space, so hover is never broken. */
+  bottom: 100%;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  width: 44px;
+  padding-block-end: 10px;
+  cursor: ns-resize;
+  touch-action: none;
+  opacity: 0;
+  transform: translateY(8px) scale(0.94);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms var(--vo-ease);
+}
+
+/* Hovering anywhere on the control — the key itself, or the bar once it is
+   out — keeps the bar up, so the pointer can travel between the two. */
+.ko-skin .vo-bar:hover .vo-volume,
+.ko-skin .vo-bar:focus-within .vo-volume {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.ko-skin .vo-volume-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 136px;
+  /* Rounded on every corner: the bar is a capsule, not a slot. */
+  border-radius: 999px;
+  /* Grey, so the cream fill and the ink number both read on it. */
+  background-color: #a8a492;
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+  backdrop-filter: blur(8px) saturate(1.1);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.28),
+    0 8px 22px rgb(16 42 56 / 0.3);
+  color: var(--vo-ink);
+  overflow: hidden;
+}
+
+.ko-skin .vo-volume-fill {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--vo-volume-level);
+  background-color: #fcf2e5;
+  transition: height 90ms linear;
+}
+
+.ko-skin .vo-volume-value {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+/* The speaker sits at the foot of the capsule: a crossed speaker when there
+   is no sound, one wave when it is quiet, two when it is loud. */
+.ko-skin .vo-volume-icon {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%);
+  color: var(--vo-ink);
+  pointer-events: none;
+}
+
+.ko-skin .vo-volume-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.7;
+}
+
+.ko-skin .vo-volume:focus-visible {
+  outline: none;
+}
+
+.ko-skin .vo-volume:focus-visible .vo-volume-track {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .ko-skin .vo-volume-track {
+    background-color: #a8a492;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   The progress bar. The volume capsule turned on its side, laid to the
+   right of the play key: the cream fill runs left to right and the
+   played time prints in the middle. It appears with the volume bar,
+   only while the pointer is on the control.
+   ------------------------------------------------------------------ */
+
+.ko-skin .vo-progress {
+  --vo-progress-level: 0%;
+  position: absolute;
+  left: calc(52px + 12px);
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  width: clamp(150px, 34vw, 320px);
+  /* Slim: a rail beside the key rather than a second circle. Sits on the
+     key's centre line, 12px down from the top of the 52px row. */
+  height: 28px;
+  top: 12px;
+  cursor: ew-resize;
+  touch-action: none;
+  opacity: 0;
+  transform: translateX(-10px) scale(0.96);
+  transform-origin: 0 50%;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms var(--vo-ease);
+}
+
+.ko-skin .vo-bar:hover .vo-progress,
+.ko-skin .vo-bar:focus-within .vo-progress {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+.ko-skin .vo-progress-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  /* Rounded on every corner, the same capsule as the volume bar. */
+  border-radius: 999px;
+  /* Grey track, cream fill, ink number — one palette for both bars. */
+  background-color: #a8a492;
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+  backdrop-filter: blur(8px) saturate(1.1);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.28),
+    0 8px 22px rgb(16 42 56 / 0.3);
+  color: var(--vo-ink);
+  overflow: hidden;
+}
+
+.ko-skin .vo-progress-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--vo-progress-level);
+  background-color: #fcf2e5;
+  transition: width 120ms linear;
+}
+
+.ko-skin .vo-progress-value {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+.ko-skin .vo-progress:focus-visible {
+  outline: none;
+}
+
+.ko-skin .vo-progress:focus-visible .vo-progress-track {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .ko-skin .vo-progress-track {
+    background-color: #a8a492;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   The small keys. Speed and quality are capsules like the two bars;
+   picture-in-picture and fullscreen are round keys stacked over the
+   volume bar. All of them ride the same hover: they are only out
+   while the pointer is on the control.
+   ------------------------------------------------------------------ */
+
+.ko-skin .vo-adjusters {
+  position: absolute;
+  left: calc(52px + 12px);
+  /* Meets the top edge of the slimmer progress rail, so the pointer path
+     from the rail up to these keys is unbroken. */
+  bottom: calc(100% - 12px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 8px;
+  width: clamp(150px, 34vw, 320px);
+  padding-block-end: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms var(--vo-ease);
+}
+
+.ko-skin .vo-screen-keys {
+  position: absolute;
+  left: 4px;
+  /* Clear of the volume capsule, which is 136px tall and floats 10px off
+     the key. The padding keeps the pointer path unbroken. */
+  bottom: calc(100% + 146px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-block-end: 10px;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity 160ms ease-out,
+    transform 220ms var(--vo-ease);
+}
+
+.ko-skin .vo-bar:hover .vo-adjusters,
+.ko-skin .vo-bar:focus-within .vo-adjusters,
+.ko-skin .vo-bar:hover .vo-screen-keys,
+.ko-skin .vo-bar:focus-within .vo-screen-keys {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* One capsule, the same grey as the two bars. */
+.ko-skin .vo-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background-color: #a8a492;
+  color: var(--vo-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.28),
+    0 8px 22px rgb(16 42 56 / 0.26);
+  cursor: pointer;
+  transition:
+    filter 140ms ease-out,
+    transform 140ms ease-out;
+}
+
+@media (hover: hover) {
+  .ko-skin .vo-chip:hover {
+    filter: brightness(1.06);
+  }
+}
+
+.ko-skin .vo-chip:active {
+  transform: scale(0.96);
+}
+
+.ko-skin .vo-chip:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+/* The two screen keys are circles rather than capsules. */
+.ko-skin .vo-chip-key {
+  width: 40px;
+  height: 40px;
+  min-width: 0;
+  padding: 0;
+}
+
+.ko-skin .vo-chip-key svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* Speed and quality are rails like the progress bar: a slim capsule with the
+   cream fill on the step that is set and the label in the middle. */
+.ko-skin .vo-rail {
+  --vo-rail-level: 0%;
+  width: 100%;
+  height: 28px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.ko-skin .vo-rail-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background-color: #a8a492;
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+  backdrop-filter: blur(8px) saturate(1.1);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.28),
+    0 8px 22px rgb(16 42 56 / 0.26);
+  color: var(--vo-ink);
+  overflow: hidden;
+}
+
+.ko-skin .vo-rail-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--vo-rail-level);
+  background-color: #fcf2e5;
+  transition: width 120ms linear;
+}
+
+.ko-skin .vo-rail-value {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
+.ko-skin .vo-rail:focus-visible {
+  outline: none;
+}
+
+.ko-skin .vo-rail:focus-visible .vo-rail-track {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+/* ------------------------------------------------------------------
+   The deck. A row of slim cards at the foot of the picture, one per
+   feature. Collapsed, a card is a strip with only its mark showing;
+   the card the pointer (or focus) is on grows wide and its control
+   opens inside it — an accordion of photographs, one per feature.
+   ------------------------------------------------------------------ */
+
+.ko-skin .vo-deck {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 44px;
+}
+
+.ko-skin .vo-deck-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Square strips: the width tracks the deck height. */
+  width: 44px;
+  border-radius: 12px;
+  overflow: hidden;
+  /* Liquid glass: a dark tint under the same displacement filter the tile
+     uses, so the picture behind each strip bends instead of sitting flat. */
+  --vo-liquid: blur(0px) url(#glass-distortion) blur(0px) saturate(1.6) brightness(1.08);
+  background-color: rgb(16 20 26 / 0.34);
+  -webkit-backdrop-filter: var(--vo-liquid);
+  backdrop-filter: var(--vo-liquid);
+  color: #ffffff;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.18),
+    inset 1px 1px 0 rgb(255 255 255 / 0.4),
+    inset 0 0 12px rgb(255 255 255 / 0.12),
+    0 8px 22px rgb(0 0 0 / 0.28);
+  cursor: pointer;
+  transition:
+    width 620ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    background-color 320ms ease-out,
+    color 320ms ease-out;
+}
+
+/* Opened, the card is the same liquid glass as the strip it grew out of —
+   only wider. No ink slab, no switch to a flat blur: the picture keeps
+   bending through it the whole way. */
+.ko-skin .vo-deck-card[data-active] {
+  width: min(340px, 36vw);
+  color: #ffffff;
+  cursor: default;
+}
+
+/* The transport is fixed — never folded, never widened by the accordion —
+   but it is cut from the same liquid glass as every other strip: a 44px
+   square, no orange slab of its own. The white glyph is the only thing that
+   marks it out. */
+.ko-skin .vo-deck-card[data-fixed] {
+  align-self: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  cursor: default;
+  transition: transform 140ms ease-out;
+}
+
+.ko-skin .vo-deck-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 160ms ease-out;
+}
+
+.ko-skin .vo-deck-mark svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.4;
+}
+
+.ko-skin .vo-deck-card[data-active] .vo-deck-mark {
+  opacity: 0;
+}
+
+/* The opened page of the card. */
+.ko-skin .vo-deck-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease-out;
+}
+
+.ko-skin .vo-deck-card[data-active] .vo-deck-body {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 240ms;
+}
+
+.ko-skin .vo-deck-card:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+/* The transport sits bare inside the cube: no fill, no ring, no shadow of
+   its own — the orange cube underneath is the only surface. Hover and press
+   are handled by the cube, so nothing stacks on top of it. */
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  color: #ffffff;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play:active,
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play:hover {
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.ko-skin .vo-deck-card[data-fixed]:active {
+  transform: scale(0.94);
+}
+
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -4px;
+}
+
+/* The glyph sits small inside the cube; its size is not what carries the
+   key's weight. */
+.ko-skin
+  .vo-bar
+  .vo-deck-card[data-fixed]
+  .vo-deck-play
+  .media-button-icon-base {
+  width: 18px;
+  height: 18px;
+}
+
+/* Play and pause are solid shapes, not outlines. */
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play .media-play-button-play-icon,
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play .media-play-button-pause-icon {
+  fill: currentColor;
+}
+
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play .media-play-button-play-icon path,
+.ko-skin .vo-bar .vo-deck-card[data-fixed] .vo-deck-play .media-play-button-pause-icon path {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* A rail inside a card: grey capsule, cream fill, value in the middle. */
+.ko-skin .vo-deck-rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 26px;
+  border-radius: 999px;
+  background-color: #a8a492;
+  color: var(--vo-ink);
+  overflow: hidden;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.ko-skin .vo-deck-rail:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.ko-skin .vo-deck-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--deck-level, 0%);
+  background-color: #fcf2e5;
+  transition: width 90ms linear;
+}
+
+.ko-skin .vo-deck-rail-icon {
+  position: absolute;
+  left: 14px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  /* Full-strength ink on the grey track, over the cream fill alike. */
+  color: #1f160c;
+}
+
+.ko-skin .vo-deck-rail-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.1;
+}
+
+.ko-skin .vo-deck-rail-value {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* The two screen keys, as round keys inside their cards. */
+.ko-skin .vo-deck-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  /* Solid cream keys on the glass, ink glyphs: the brightest thing in the
+     opened card, so neither end of the footage can swallow them. */
+  background-color: #fcf2e5;
+  color: #2c2012;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.55),
+    0 2px 6px rgb(0 0 0 / 0.22);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease-out,
+    transform 140ms ease-out;
+}
+
+.ko-skin .vo-deck-key svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.2;
+}
+
+@media (hover: hover) {
+  .ko-skin .vo-deck-key:hover {
+    background-color: #ffffff;
+  }
+}
+
+.ko-skin .vo-deck-key:active {
+  transform: scale(0.96);
+}
+
+.ko-skin .vo-deck-key:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ko-skin .vo-deck-card {
+    transition: width 0s;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .ko-skin .vo-deck-card {
+    background-color: rgb(40 38 34 / 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .ko-skin .vo-chip {
+    background-color: #a8a492;
+  }
 }
 
 /* Layer 1 — frost. Only a `backdrop-filter`, no `filter`: an element carrying
@@ -243,21 +935,17 @@
   }
 }
 
-.ko-skin .vo-progress,
-.ko-skin .vo-keys {
-  position: relative;
-  z-index: 1;
-}
-
-/* Opacity only, and no `will-change`. Anything else on this element — a
-   `filter`, a transform it has to composite, a hint that promotes it to its
-   own layer — stops the backdrop-filter from capturing the live picture, so
-   the glass opens on a stale frame and reads as frozen for a moment. */
-.ko-skin .vo-content:not([data-visible]) .vo-bar {
+/* The panel (sand and controls together) slides down out of the tile when the
+   pointer leaves the player or rests: it is opaque sand now, so a transform
+   costs nothing and cannot freeze the picture the way it would on glass. */
+.ko-skin .vo-content:not([data-visible]) .vo-bar,
+.ko-skin[data-ko-panel-hidden] .vo-bar {
   opacity: 0;
+  transform: translate3d(0, calc(100% + 14px), 0);
 }
 
-.ko-skin .vo-content:not([data-visible]) .vo-dock {
+.ko-skin .vo-content:not([data-visible]) .vo-dock,
+.ko-skin[data-ko-panel-hidden] .vo-dock {
   pointer-events: none;
 }
 
@@ -265,10 +953,25 @@
    Progress: current time, the rail, the duration.
    ------------------------------------------------------------------ */
 
-.ko-skin .vo-progress {
+/* ------------------------------------------------------------------
+   The one row: transport, timeline, settings. Nothing else.
+   ------------------------------------------------------------------ */
+
+.ko-skin .vo-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
+  min-width: 0;
+}
+
+.ko-skin .vo-progress {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .ko-skin .vo-time {
@@ -276,7 +979,8 @@
   min-width: 32px;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  color: rgb(255 255 255 / 0.92);
+  /* The times sit on the sand now, so they go to dark ink. */
+  color: var(--vo-ink);
 }
 
 .ko-skin .vo-time:first-child {
@@ -288,7 +992,8 @@
 }
 
 /* The timeline is the custom slider: a plain rail, a white fill and a thumb
-   that carries the rolling time bubble. */
+   that carries the rolling time bubble. It sits on the sand, so its rail and
+   thumb go dark like the fader's, with the deep-sea fill as the only colour. */
 .ko-skin .vo-seek {
   flex: 1 1 auto;
   min-width: 0;
@@ -296,38 +1001,27 @@
   --thumb-size: 12px;
   --track-height: 4px;
   --bubble-lift: 0px;
+  --control-track: rgb(64 44 20 / 0.28);
+  --control-fill: var(--vo-sea-deep);
+  --control-thumb: #ffffff;
+  --control-thumb-shadow:
+    0 0 0 1px rgb(64 44 20 / 0.35),
+    0 2px 5px rgb(40 25 8 / 0.3);
+  --focus-ring: var(--vo-ink);
 }
 
 /* ------------------------------------------------------------------
-   Keys: transport, mute, fader on the left; speed and screen keys right.
+   The keys. Only three live in the bar now: the transport, and the
+   settings trigger that arrives through `menu`.
    ------------------------------------------------------------------ */
-
-.ko-skin .vo-keys {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.ko-skin .vo-keys-start,
-.ko-skin .vo-keys-end {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-}
-
-.ko-skin .vo-keys-end {
-  flex: 0 0 auto;
-}
 
 .ko-skin .vo-bar .media-button {
   width: 34px;
   height: 34px;
   border-radius: 50%;
   background-color: transparent;
-  color: #ffffff;
+  /* Dark ink on the sand. The play key overrides this on its pink circle. */
+  color: var(--vo-ink);
   transition:
     background-color 150ms ease-out,
     transform 150ms ease-out;
@@ -346,8 +1040,9 @@
 }
 
 @media (hover: hover) {
-  .ko-skin .vo-bar .media-button:hover {
-    background-color: var(--vo-gloss);
+  /* Ghost keys only: the transport is a filled circle and keeps its colour. */
+  .ko-skin .vo-bar .media-button:not(.media-play-button):hover {
+    background-color: rgb(44 32 18 / 0.1);
   }
 }
 
@@ -356,36 +1051,54 @@
 }
 
 .ko-skin .vo-bar .media-button:focus-visible {
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--vo-ink);
   outline-offset: 2px;
 }
 
 /* ------------------------------------------------------------------
-   The transport is the one big circle in the bar: a solid white key,
-   much larger than the ghost icon buttons around it, so play/pause is
-   the first thing the eye finds and the easiest thing to hit. It keeps
-   the ghost buttons' focus ring and press feel.
+   The transport is the one filled circle in the bar: the island's pink
+   key while the play icon is up, oxblood while it is playing and the
+   pause icon shows. Much larger than the ghost keys around it, so
+   play/pause is the first thing the eye finds and the easiest thing to
+   hit. It keeps the ghost buttons' focus ring and press feel.
    ------------------------------------------------------------------ */
 
 .ko-skin .vo-bar .media-play-button {
   width: 44px;
   height: 44px;
   margin-inline-end: 4px;
-  background-color: #ffffff;
-  color: #0b0b0b;
+  background-color: var(--vo-play);
+  color: var(--vo-play-ink);
   box-shadow:
-    0 0 0 1px rgb(0 0 0 / 0.16),
-    0 4px 12px rgb(0 0 0 / 0.35),
-    0 10px 20px rgb(0 0 0 / 0.18);
+    0 0 0 1px rgb(120 40 20 / 0.18),
+    0 4px 12px rgb(120 40 20 / 0.28),
+    0 10px 20px rgb(16 42 56 / 0.18);
 }
 
+/* The key keeps its one orange in every state — ready, playing, paused, ended —
+   so the control never changes colour under the pointer. */
+
+/* The glyph always paints. The scaffold swaps play/pause/replay with layered
+   rules; these unlayered copies win the cascade, so exactly one mark is
+   visible inside the circle whichever state attributes are set. */
 .ko-skin .vo-bar .media-play-button .media-button-icon-base {
+  display: none;
   width: 20px;
   height: 20px;
 }
 
-/* Play, pause and the end-of-video replay arrow all sit on the white key, so
-   they carry a slightly heavier line than the ghost keys' glyphs (1.7). */
+.ko-skin
+  .vo-bar
+  .media-play-button[data-started]:not([data-paused]):not([data-ended])
+  .media-play-button-pause-icon,
+.ko-skin .vo-bar .media-play-button:not([data-ended]):not([data-started]) .media-play-button-play-icon,
+.ko-skin .vo-bar .media-play-button:not([data-ended])[data-paused] .media-play-button-play-icon,
+.ko-skin .vo-bar .media-play-button[data-ended] .media-play-button-restart-icon {
+  display: block;
+}
+
+/* Play, pause and the end-of-video replay arrow all sit on the filled key,
+   so they carry a slightly heavier line than the ghost keys' glyphs (1.7). */
 .ko-skin .vo-bar .media-play-button svg path {
   stroke-width: 2;
 }
@@ -393,11 +1106,10 @@
 
 @media (hover: hover) {
   .ko-skin .vo-bar .media-play-button:hover {
-    background-color: #ffffff;
     box-shadow:
-      0 0 0 1px rgb(0 0 0 / 0.16),
-      0 6px 16px rgb(0 0 0 / 0.4),
-      0 14px 26px rgb(0 0 0 / 0.22);
+      0 0 0 1px rgb(120 40 20 / 0.2),
+      0 6px 16px rgb(120 40 20 / 0.34),
+      0 14px 26px rgb(16 42 56 / 0.22);
     transform: scale(1.05);
   }
 }
@@ -407,190 +1119,339 @@
 }
 
 .ko-skin .vo-bar .media-play-button:focus-visible {
-  outline: 3px solid #ffffff;
+  outline: 3px solid var(--vo-ink);
   outline-offset: 3px;
   box-shadow:
-    0 0 0 6px rgb(0 0 0 / 0.55),
-    0 4px 12px rgb(0 0 0 / 0.35);
-}
-
-/* The volume fader: the same slider, short enough to sit beside the keys. */
-.ko-skin .vo-fader {
-  flex: 0 0 auto;
-  width: 96px;
-  margin-inline: 4px 6px;
-  --control-pad: 6px;
-  --thumb-size: 11px;
-  --track-height: 4px;
-  /* The short fader's bubble sits over the thumb, not above it. */
-  --bubble-lift: -7px;
+    0 0 0 6px rgb(255 255 255 / 0.7),
+    0 4px 12px rgb(0 0 0 / 0.28);
 }
 
 /* ------------------------------------------------------------------
-   The menus: the settings card, the option panels inside it, and every
-   row in both. Same glass as the bar it comes out of — the same tint,
-   gloss, rim and displacement layer — so a submenu reads as another pane
-   of the same material, with each row a pill on top of it.
+   The settings wheel's list pages. The ring itself lives in
+   components/ui/circular-command-menu.module.css; a page is the same
+   sand card the island is cut from, so picking a quality feels like
+   reading a note left on the beach.
    ------------------------------------------------------------------ */
 
-.ko-skin .media-menu-popup {
-  /* The card opens a little higher above the bar than the base 9 steps, so it
-     clears the panel instead of crowding it. */
-  --media-popover-side-offset: calc(var(--media-spacing) * 13);
-  --media-popup-side-offset: var(--media-popover-side-offset);
-  isolation: isolate;
-  border: 0;
-  border-radius: var(--vo-radius-card);
-  /* The same liquid glass as the control, so the card and the keys are one
-     pane — just a smaller corner, because the card is a smaller box. */
-  background: var(--vo-dark);
-  --vo-liquid: blur(0px) url(#glass-distortion) blur(0px) saturate(1.5) brightness(1.1);
-  backdrop-filter: var(--vo-liquid);
-  -webkit-backdrop-filter: var(--vo-liquid);
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.15),
-    inset 1.5px 1.5px 0 rgb(255 255 255 / 0.5),
-    inset 0 0 12px rgb(255 255 255 / 0.2),
-    0 8px 32px rgb(0 0 0 / 0.2);
-}
-
-/* The same displacement layer the bar wears: the picture under the card is
-   gently frosted and rippled, and the tint and gloss are part of what it
-   distorts, so the panel still reads dark enough for white type. */
-.ko-skin .media-menu-popup::before,
-.ko-skin .media-menu-popup::after {
-  display: none;
-}
-
-.ko-skin .media-menu-popup > .media-menu-content {
-  z-index: 1;
-}
-
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu] {
-  z-index: 2;
-}
-
-/* The content is the panel that slides when a submenu opens, so its own
-   clip has to keep the radius instead of squaring the corners. Tight gaps so
-   the first panel shows all its rows without a scrollbar. It stays clear:
-   the glass lives on the popup, so every panel shares one refraction. */
-.ko-skin .media-menu-content {
-  padding: 6px;
-  gap: 4px !important;
-  border-radius: inherit;
-  clip-path: inset(0 round var(--vo-radius-card));
-  background-color: transparent;
-  overflow: hidden;
-  scrollbar-width: none;
-}
-
-.ko-skin .media-menu-content::-webkit-scrollbar {
-  display: none;
-}
-
-/* The rows are lifted over the highlight pill, which is what actually moves;
-   their own background stays clear so only the pill lights a row. */
-.ko-skin .media-menu-item,
-.ko-skin .media-menu-back-item,
-.ko-skin .media-menu-radio-item {
-  position: relative;
-  z-index: 1;
-  min-height: 30px;
-  border-radius: var(--vo-radius-row);
-  background-color: transparent;
-}
-
-.ko-skin .media-menu-item[data-highlighted],
-.ko-skin .media-menu-back-item[data-highlighted],
-.ko-skin .media-menu-radio-item[data-highlighted] {
-  background-color: transparent;
-}
-
-/* One pill for the whole panel: it glides from row to row instead of every
-   row fading its own background, so moving down the list reads as a single
-   smooth flow (pointer and keyboard alike, since both set data-highlighted). */
-.ko-skin .vo-menu-glow {
-  position: absolute;
-  z-index: 0;
-  border-radius: var(--vo-radius-row);
-  background-color: var(--vo-glow);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    top 220ms var(--vo-ease),
-    left 220ms var(--vo-ease),
-    width 220ms var(--vo-ease),
-    height 220ms var(--vo-ease),
-    opacity 140ms ease-out;
-}
-
-.ko-skin .vo-menu-glow[data-on] {
-  opacity: 1;
-}
-
-.ko-skin .media-menu-back-item {
-  margin-block-end: 2px;
-}
-
-/* The option lists (Quality, Speed, Captions) get a little more room: taller
-   rows and a wider gap. A submenu can never outgrow the player though, so it
-   is capped and scrolls — with a visible slim rail, so a long list still reads
-   as scrollable and every row stays clickable at any player size. */
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu] {
-  gap: 3px !important;
+.ko-skin .vo-option-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 8px;
-  /* The panel is as tall as the popup allows, never a hard 15rem: the popup
-     itself grows for a submenu below. */
-  max-height: 100%;
+  border-radius: var(--vo-radius-card);
+  /* The island's recipe, one size down. */
+  background-color: var(--vo-sand);
+  background-image: var(--vo-sand-surface);
+  background-size: var(--vo-sand-surface-size);
+  color: var(--vo-ink);
+  box-shadow: var(--vo-sand-edge);
+}
+
+.ko-skin .vo-option-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px 8px;
+}
+
+.ko-skin .vo-option-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--vo-ink);
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.ko-skin .vo-option-back svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.9;
+  /* The set draws one chevron; turned round, it points back. */
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) {
+  .ko-skin .vo-option-back:hover {
+    background-color: rgb(120 84 40 / 0.16);
+  }
+}
+
+.ko-skin .vo-option-back:focus-visible {
+  outline: 2px solid var(--vo-ink);
+  outline-offset: 2px;
+}
+
+.ko-skin .vo-option-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Long lists (Quality can name every rendition) get a short window that
+   scrolls, so the card never outgrows the picture. */
+.ko-skin .vo-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scroll-padding-block: 8px;
+  scroll-padding-block: 6px;
   scrollbar-width: thin;
-  scrollbar-color: rgb(255 255 255 / 0.45) transparent;
+  scrollbar-color: rgb(120 84 40 / 0.35) transparent;
 }
 
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu]::-webkit-scrollbar {
-  display: block;
+.ko-skin .vo-option-list::-webkit-scrollbar {
   width: 6px;
 }
 
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu]::-webkit-scrollbar-track {
-  background-color: transparent;
-}
-
-/* A submenu is usually longer than the card that opened it (Quality can list
-   every rendition), so the popup gets a short fixed window — about five rows —
-   and the panel scrolls inside it: every row can still be reached and clicked,
-   without the card growing to the height of the list. */
-.ko-skin .media-menu-popup:has(> .media-menu-content[data-submenu]) {
-  height: min(var(--media-menu-available-height, 13rem), 13rem);
-  max-height: min(var(--media-menu-available-height, 13rem), 13rem);
-}
-
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu]::-webkit-scrollbar-thumb {
+.ko-skin .vo-option-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  background-color: rgb(255 255 255 / 0.45);
+  background-color: rgb(120 84 40 / 0.35);
 }
 
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu] .media-menu-radio-item,
-.ko-skin .media-menu-popup > .media-menu-content[data-submenu] .media-menu-back-item {
-  min-height: 36px;
+.ko-skin .vo-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--vo-radius-row);
+  color: var(--vo-ink);
+  background-color: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 140ms ease-out;
+}
+
+@media (hover: hover) {
+  .ko-skin .vo-option-row:hover {
+    background-color: rgb(120 84 40 / 0.12);
+  }
+}
+
+.ko-skin .vo-option-row[aria-checked='true'] {
+  background-color: rgb(120 84 40 / 0.16);
+  font-weight: 600;
+}
+
+.ko-skin .vo-option-row:focus-visible {
+  outline: 2px solid var(--vo-ink);
+  outline-offset: -2px;
+}
+
+.ko-skin .vo-option-row:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ko-skin .vo-option-check {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+}
+
+.ko-skin .vo-option-row[aria-checked='true'] .vo-option-check {
+  opacity: 1;
+}
+
+.ko-skin .vo-option-empty {
+  margin: 0;
+  padding: 10px 12px 12px;
+  font-size: 12px;
+  color: rgb(44 32 18 / 0.7);
 }
 
 /* ------------------------------------------------------------------
-   Smaller players: the max width keeps the panel clear of the edges,
-   the fader goes before the chips do.
+   The beach panel.
+
+   The control bar is a plain little beach: opaque warm sand, a grain of
+   speckles, and a deep shelf of it above the timeline. No water — the
+   progress row sits on sand in dark ink, so every control shares one
+   palette and the panel never competes with the picture.
+   ------------------------------------------------------------------ */
+
+.ko-skin {
+  /* The island's warm yellow, shaded a step darker at either end so the
+     pane still has a top and a bottom. */
+  --vo-sand: #ffe185;
+  --vo-sand-deep: #f6cf5a;
+  --vo-sand-crest: #fff0b8;
+  --vo-sea-deep: #0a5e7d;
+  --vo-ink: #2c2012;
+  /* The control: the one orange key in the corner of the picture, and the
+     only accent the player has — the wheel's keys borrow it too. */
+  --vo-cube: #ec5b38;
+  --vo-play: #ec5b38;
+  --vo-play-ink: #ffffff;
+  /* One sand recipe, shared by the island and the settings card, so the two
+     panes are cut from the same beach. */
+  --vo-sand-surface:
+    radial-gradient(circle at 2px 2px, rgb(120 84 40 / 0.16) 0.6px, transparent 0.7px),
+    radial-gradient(circle at 5px 7px, rgb(255 255 255 / 0.4) 0.6px, transparent 0.7px),
+    linear-gradient(
+      180deg,
+      var(--vo-sand-deep) 0%,
+      var(--vo-sand) 34%,
+      var(--vo-sand-crest) 66%,
+      var(--vo-sand-deep) 100%
+    );
+  --vo-sand-surface-size: 9px 9px, 11px 11px, 100% 100%;
+  /* The edge every sand pane wears: a 1px white line, a bright top bead, a
+     warm inner shade at the bottom, and a deep drop shadow under it. */
+  --vo-sand-edge:
+    inset 0 0 0 1px rgb(255 255 255 / 0.42),
+    inset 0 1.5px 0 rgb(255 255 255 / 0.6),
+    inset 0 -2px 6px rgb(120 84 40 / 0.18),
+    0 10px 30px rgb(16 42 56 / 0.28);
+}
+
+/* ------------------------------------------------------------------
+   The wash: real water over the beach.
+
+   A clip of the sea, not a drawing — three flat SVG bands can be charming,
+   but they can never be photoreal, and the ask was the real thing. The layer
+   is pinned to the panel and clipped to nothing; `data-ko-ocean` on the skin
+   opens the clip downward from the picture edge, so the sea spills over the
+   sand and drains back the same way. One foam line rides the arriving edge.
+
+   Because the panel now floods behind the controls, the chrome flips for the
+   duration: white keys, white times and white slider on a dark scrim, the
+   water palette the beach had before. It answers the sea, and it means no
+   ink ever sits on moving blue.
+   ------------------------------------------------------------------ */
+
+.ko-skin .vo-ocean {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  transition:
+    opacity 200ms var(--vo-ease),
+    clip-path 720ms var(--vo-ease);
+}
+
+.ko-skin[data-ko-ocean] .vo-ocean {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+}
+
+/* The footage fills the panel; `cover` keeps the swell the size it was shot
+   at, whatever the player's aspect. */
+.ko-skin .vo-ocean-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A scrim, not a veil: white type needs a floor, and a real swell runs from
+   bright foam to near-black water inside one frame. */
+.ko-skin .vo-ocean-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(6 34 46 / 0.08) 0%,
+    rgb(6 34 46 / 0.3) 46%,
+    rgb(6 34 46 / 0.5) 100%
+  );
+}
+
+/* The arriving crest: one white line that travels with the opening clip and
+   fades once the water settles. */
+.ko-skin .vo-ocean-foam {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.9), transparent);
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  opacity: 0;
+}
+
+.ko-skin[data-ko-ocean] .vo-ocean-foam {
+  animation: vo-ocean-crest 900ms var(--vo-ease) both;
+}
+
+@keyframes vo-ocean-crest {
+  0% {
+    opacity: 0;
+    background-position: 0 0;
+  }
+
+  18% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    background-position: 0 100%;
+  }
+}
+
+/* The flood state: the bar's ink goes white for as long as the water is in.
+   Everything that reads ink off --vo-ink follows on its own; the slider and
+   the times carry their own tokens, so they are listed. */
+.ko-skin[data-ko-ocean] .vo-bar {
+  --vo-ink: #ffffff;
+}
+
+.ko-skin[data-ko-ocean] .vo-time {
+  color: rgb(255 255 255 / 0.96);
+  text-shadow: 0 1px 3px rgb(3 30 44 / 0.6);
+}
+
+.ko-skin[data-ko-ocean] .vo-seek {
+  --control-track: rgb(255 255 255 / 0.38);
+  --control-fill: #ffffff;
+  --control-thumb: #ffffff;
+  --control-thumb-shadow:
+    0 0 0 1px rgb(6 42 58 / 0.35),
+    0 2px 5px rgb(6 42 58 / 0.35);
+  --focus-ring: #ffffff;
+}
+
+.ko-skin .vo-bar .media-button,
+.ko-skin .vo-time {
+  transition:
+    color 220ms var(--vo-ease),
+    background-color 150ms ease-out;
+}
+
+@media (hover: hover) {
+  .ko-skin[data-ko-ocean] .vo-bar .media-button:not(.media-play-button):hover {
+    background-color: rgb(255 255 255 / 0.18);
+  }
+}
+
+.ko-skin[data-ko-ocean] .vo-bar .media-button:focus-visible {
+  outline-color: #ffffff;
+}
+
+/* ------------------------------------------------------------------
+   Smaller players: a shorter island, tighter keys.
    ------------------------------------------------------------------ */
 
 @media (max-width: 26rem) {
-  .ko-skin .vo-fader {
-    display: none;
-  }
-
   .ko-skin .vo-bar {
-    padding: 10px 12px;
+    padding: 6px 8px;
   }
 
   .ko-skin .vo-bar .media-button {
@@ -615,8 +1476,7 @@
     height: 48px;
   }
 
-  .ko-skin .vo-seek,
-  .ko-skin .vo-fader {
+  .ko-skin .vo-seek {
     --thumb-size: 15px;
     --control-pad: 10px;
   }
@@ -634,7 +1494,7 @@
 
 
   .ko-skin .vo-bar {
-    background-color: #000000;
+    background-color: var(--vo-sand);
     backdrop-filter: none;
   }
 
@@ -642,24 +1502,6 @@
   .ko-skin .vo-bar::after {
     display: none;
   }
-
-  .ko-skin .media-menu-popup,
-  .ko-skin .media-menu-content {
-    background-color: #000000;
-    background-image: none;
-    backdrop-filter: none;
-  }
-
-  .ko-skin .media-menu-popup::before,
-  .ko-skin .media-menu-popup::after {
-    display: none;
-  }
-}
-
-.ko-skin .vo-progress,
-.ko-skin .vo-keys {
-  position: relative;
-  z-index: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -668,7 +1510,6 @@
   }
 
   .ko-skin .vo-bar,
-  .ko-skin .vo-menu-glow,
   .ko-skin .vo-bar .media-button {
     transition: none;
   }
@@ -677,15 +1518,37 @@
     animation: none;
   }
 
+  /* The sea is motion; under a reduced-motion preference it never arrives
+     (the behaviour does not even set the attribute), so the reveal is off
+     too, in case anything else ever does. */
+  .ko-skin .vo-ocean {
+    transition: none;
+  }
+
+  .ko-skin .vo-ocean-foam {
+    animation: none;
+  }
+
   .ko-skin .vo-content:not([data-visible]) .vo-bar {
     transform: none;
     filter: none;
+  }
+
+  .ko-skin[data-ko-panel-hidden] .vo-bar {
+    transform: none;
   }
 }
 
 @media (forced-colors: active) {
   .ko-skin .vo-bar {
     border: 1px solid canvastext;
+    background: Canvas;
+    color: CanvasText;
+    text-shadow: none;
   }
 
+  /* Footage has no system colour, so the water steps aside. */
+  .ko-skin .vo-ocean {
+    display: none;
+  }
 }

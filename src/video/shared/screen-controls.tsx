@@ -23,7 +23,7 @@ function PiPButton() {
   );
 }
 
-function FullscreenButton() {
+export function FullscreenButton() {
   return (
     <ButtonTooltip popupClassName={'media-tooltip-screen-popup'}>
       <FullscreenButtonPrimitive render={<Button />} className={'media-fullscreen-button'}>

@@ -31,7 +31,7 @@ export function VideoWheelVolume() {
       // settings menu or dialog.
       if (root.hasAttribute('data-ko-scrubbing')) return;
       const target = wheel.target as Element | null;
-      if (target?.closest?.('.media-menu-popup, .media-dialog-popup')) return;
+      if (target?.closest?.('.media-menu-popup, .media-dialog-popup, [data-vo-wheel]')) return;
 
       event.preventDefault();
       let dy = wheel.deltaY;

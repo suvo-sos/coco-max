@@ -14,6 +14,7 @@ export function VideoControlsContent({
   center = false,
   live = false,
   menu,
+  oceanSrc,
   renderThumbnail,
   seekBackward,
   seekForward,
@@ -25,6 +26,7 @@ export function VideoControlsContent({
         center={center}
         live={live}
         menu={menu}
+        oceanSrc={oceanSrc}
         renderThumbnail={renderThumbnail}
         seekBackward={seekBackward}
         seekForward={seekForward}

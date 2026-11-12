@@ -2,8 +2,6 @@
 
 import { Controls } from '@videojs/react';
 
-import { ScreenControls } from './shared/screen-controls';
-import { SettingsMenu } from './shared/settings-menu';
 import type { ThumbnailSlot } from './shared/controls';
 import { VideoControlsContent } from './shared/video-controls';
 
@@ -17,16 +15,11 @@ import { VideoControlsContent } from './shared/video-controls';
  * There are deliberately no 10s skip buttons: seeking already has
  * the filmstrip, right-drag and the keyboard.
  */
-export function VideoControls({ renderThumbnail }: ThumbnailSlot = {}) {
+export function VideoControls({ oceanSrc, renderThumbnail }: ThumbnailSlot & { oceanSrc?: string } = {}) {
   return (
     <Controls.Root>
       <VideoControlsContent
-        menu={
-          <>
-            <SettingsMenu />
-            <ScreenControls />
-          </>
-        }
+        oceanSrc={oceanSrc}
         renderThumbnail={renderThumbnail}
       />
     </Controls.Root>

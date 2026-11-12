@@ -12,6 +12,7 @@ import { cn } from '@/lib/resolve-class-name';
 
 import { VideoGestures } from './behaviors/gestures';
 import { VideoHotkeys } from './behaviors/hotkeys';
+import { VideoIdleHide } from './behaviors/idle-hide';
 import { VideoPalette } from './behaviors/video-palette';
 import { VideoWheelVolume } from './behaviors/wheel-volume';
 import { VideoControls } from './controls';
@@ -24,6 +25,14 @@ import { Poster } from './shared/video-feedback';
 
 export interface VideoSkinProps extends Omit<ContainerPrimitive.Props, 'children'> {
   children?: ReactNode;
+  /**
+   * A short, seamless, muted clip of real water. It washes over the beach when
+   * the pointer arrives and drains away when it leaves. Defaults to
+   * `./ocean.mp4`, which the preview serves from `apps/preview/public/`; drop
+   * the file there (or pass another URL) and the effect comes to life. Left
+   * missing, the beach stays dry — no broken state.
+   */
+  oceanSrc?: string;
   renderPoster?: PosterPrimitive.ImageProps['render'];
   renderThumbnail?: SliderPrimitive.Thumbnail.ImageProps['render'];
 }
@@ -31,6 +40,7 @@ export interface VideoSkinProps extends Omit<ContainerPrimitive.Props, 'children
 export function VideoSkin({
   children,
   className,
+  oceanSrc = './ocean.mp4',
   renderPoster,
   renderThumbnail,
   ...props
@@ -46,10 +56,11 @@ export function VideoSkin({
       <LiquidGlassFilter />
       <Poster renderImage={renderPoster} />
       <ErrorDialog />
-      <VideoControls renderThumbnail={renderThumbnail} />
+      <VideoControls oceanSrc={oceanSrc} renderThumbnail={renderThumbnail} />
 
       <VideoHotkeys />
       <VideoGestures />
+      <VideoIdleHide />
       <VideoWheelVolume />
       <VideoPalette />
       <StatusAnnouncer />
