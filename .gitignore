@@ -15,3 +15,6 @@ dist
 
 # Agent skill files (not part of the project).
 .agents/
+
+# Vercel ignore file (removed; Vercel uses defaults).
+.vercelignore
