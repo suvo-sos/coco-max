@@ -12,3 +12,6 @@ dist
 .netlify
 .wrangler
 .env*.local
+
+# Agent skill files (not part of the project).
+.agents/
