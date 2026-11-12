@@ -928,75 +928,75 @@
 }
 
 @media (max-width: 40rem) {
-  /* A smaller deck for phones: shorter strips, tighter gaps, a narrower
-     opened card, and everything inside it scaled to match. */
+  /* A compact deck for phones: it scales to the video's width so all six
+     strips fit on a narrow tile, and the opened card stays inside it. */
   .ko-skin .vo-dock {
-    padding: 12px;
+    padding: 8px;
   }
 
   .ko-skin .vo-deck {
-    gap: 3px;
-    height: 36px;
+    gap: 2px;
+    height: 32px;
   }
 
   .ko-skin .vo-deck-card {
-    width: 36px;
-    border-radius: 9px;
+    width: 32px;
+    border-radius: 8px;
   }
 
   .ko-skin .vo-deck-card[data-active] {
-    width: min(260px, 84vw);
+    width: min(200px, 70vw);
   }
 
   .ko-skin .vo-deck-mark svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     stroke-width: 2.2;
   }
 
   .ko-skin .vo-deck-body {
-    gap: 4px;
-    padding: 4px;
+    gap: 3px;
+    padding: 3px;
   }
 
   .ko-skin .vo-deck-rail {
-    height: 22px;
+    height: 20px;
   }
 
   .ko-skin .vo-deck-rail-icon {
-    left: 8px;
+    left: 6px;
   }
 
   .ko-skin .vo-deck-rail-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
   }
 
   .ko-skin .vo-deck-rail-value {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .ko-skin .vo-deck-key {
-    width: 36px;
-    height: 36px;
-    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
   }
 
   .ko-skin .vo-deck-key svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .ko-skin .vo-deck-tick {
-    top: 12px;
-    bottom: 12px;
+    top: 10px;
+    bottom: 10px;
   }
 
   .ko-skin .vo-deck-rail[data-variant='window']::after {
-    top: 7px;
-    bottom: 7px;
-    width: 6px;
-    border-radius: 3px;
+    top: 6px;
+    bottom: 6px;
+    width: 5px;
+    border-radius: 2px;
   }
 }
 
