@@ -16,7 +16,7 @@ The deck is real Video.js UI underneath: play, volume, quality, rate, picture-in
 
 The shared motion slider (`src/components/ui/slider.tsx`) is still in the repo — thumb follows the pointer, rubber-bands past the ends, settles with the speed of the release, rolling digits in a bubble — but the deck no longer mounts it: its rails are the replacement.
 
-Mux playback ID (bonus): the preview plays Mux asset `WgQub02xMCjA3vR8A1idUkooFLeOlW8zn65pHyCvI01c8` (`https://stream.mux.com/WgQub02xMCjA3vR8A1idUkooFLeOlW8zn65pHyCvI01c8.m3u8`, HLS). Keep the asset live through judging.
+Mux playback ID (bonus): the preview plays Mux asset `ClA94sikONPeAkP5tJX0061EAGzjqi9YSE26I00BF02cQE` (`https://stream.mux.com/ClA94sikONPeAkP5tJX0061EAGzjqi9YSE26I00BF02cQE.m3u8`, HLS). Keep the asset live through judging.
 
 ## One minimal page
 
