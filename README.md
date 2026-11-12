@@ -51,7 +51,3 @@ To deploy on every push instead, import the repo on Vercel or Netlify; `vercel.j
 ## License
 
 Coco is released under the [MIT License](./LICENSE).
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md). Issues and pull requests are welcome.
