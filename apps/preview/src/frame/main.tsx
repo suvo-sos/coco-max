@@ -4,19 +4,15 @@ import { createRoot } from 'react-dom/client';
 
 import '@/skin.css';
 import './preview.css';
-import { playbackProps, playerStyles, THEMES, writeParams, type Theme } from '../shell/params';
+import { playbackProps, playerStyles } from '../shell/params';
 import { initialParams, onParamsChange } from './frame';
-import { PARAMS_MESSAGE } from '../shell/messages';
 import { type ChosenVideo, SINGLE_VIDEO } from './home';
 import { Player } from './player';
-
-const THEME_LABELS: Record<Theme, string> = { glass: 'Glass', dark: 'Dark', light: 'White', orange: 'Orange' };
 
 function Preview() {
   const [params, setParams] = useState(initialParams);
   const [video, setVideo] = useState<ChosenVideo>(SINGLE_VIDEO);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const frame = useRef<HTMLIFrameElement | null>(null);
   const objectUrl = useRef<string | null>(null);
 
   useEffect(() => onParamsChange(setParams), []);
@@ -40,31 +36,10 @@ function Preview() {
     setVideo(SINGLE_VIDEO);
   };
 
-  const setTheme = (theme: Theme) => {
-    const next = { ...params, theme };
-    setParams(next);
-    location.hash = writeParams(next);
-    frame.current?.contentWindow?.postMessage({ type: PARAMS_MESSAGE, query: writeParams(next) }, location.origin);
-  };
-
   return (
     // The provider loads Video.js's built-in translations for the selected language.
     <I18nProvider locale={params.locale}>
       <div className="hop-page">
-        <div className="preview-upload" style={{ justifyContent: 'center', marginBottom: '0.5rem' }}>
-          <span className="preview-upload-note">Theme:</span>
-          {THEMES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTheme(t)}
-              className={`preview-upload-button ${params.theme === t ? 'preview-upload-button--active' : ''}`}
-              style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
-            >
-              {THEME_LABELS[t]}
-            </button>
-          ))}
-        </div>
         <div className="preview-stage">
           <div className="preview-player" style={playerStyles(params) as CSSProperties}>
             {/* A new source needs a fresh player, so the element is keyed by it. */}

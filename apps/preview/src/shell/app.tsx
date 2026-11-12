@@ -5,14 +5,12 @@ import { skin } from './config';
 import { PARAMS_MESSAGE } from './messages';
 import { Navbar } from './navbar';
 import { OptionsPanel } from './options-panel';
-import { readParams, writeParams, THEMES, type Theme, type WorkbenchParams } from './params';
+import { readParams, writeParams, type WorkbenchParams } from './params';
 import { usePreferences } from './preferences';
 import { readStored, writeStored } from './storage';
 import { createUrlWriter } from './url';
 
 const writeUrl = createUrlWriter();
-
-const THEME_LABELS: Record<Theme, string> = { glass: 'Glass', dark: 'Dark', light: 'White', orange: 'Orange' };
 
 /**
  * A slimmed-down Video.js sandbox for one skin: the options panel sets how the preview looks, and the preview frame
@@ -56,21 +54,6 @@ export function App() {
       <Navbar previewUrl={`./preview.html#${query}`} optionsId={optionsId} />
       <div className="flex min-h-0 flex-1">
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2">
-            <span className="text-muted-foreground text-xs font-medium">Theme:</span>
-            {THEMES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => update({ theme: t })}
-                className={`rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-                  params.theme === t ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
-              >
-                {THEME_LABELS[t]}
-              </button>
-            ))}
-          </div>
           <iframe
             ref={frame}
             src={frameUrl}
