@@ -915,6 +915,18 @@
   background-color: rgb(255 255 255 / 0.26);
 }
 
+@media (pointer: coarse) {
+  /* Touch targets: the keys grow to 44px, the rails get a taller hit area. */
+  .ko-skin .vo-deck-key {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ko-skin .vo-deck-rail {
+    height: 34px;
+  }
+}
+
 .ko-skin .vo-deck-key:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
