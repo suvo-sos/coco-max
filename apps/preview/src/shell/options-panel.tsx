@@ -26,17 +26,20 @@ import {
   PLAYER_WIDTH,
   PRELOAD_VALUES,
   TEXT_DIRECTIONS,
+  THEMES,
   type AspectRatio,
   type ColorScheme,
   type Locale,
   type PreloadValue,
   type TextDirection,
+  type Theme,
   type WorkbenchParams,
 } from './params';
 import { PREFERENCE_QUERIES, type Preferences } from './preferences';
 import { SelectField } from './select';
 
 const SCHEME_LABELS: Record<ColorScheme, string> = { auto: 'System', light: 'Light', dark: 'Dark' };
+const THEME_LABELS: Record<Theme, string> = { glass: 'Glass', dark: 'Dark', light: 'White', orange: 'Orange' };
 const DIRECTION_LABELS: Record<TextDirection, string> = {
   auto: 'Language',
   ltr: 'Left to right',
@@ -114,6 +117,12 @@ export function OptionsPanel({ id, params, onParamsChange, preferences }: Option
             value={params.scheme}
             onChange={(value) => onParamsChange({ scheme: value as ColorScheme })}
             options={COLOR_SCHEMES.map((value) => ({ value, label: SCHEME_LABELS[value] }))}
+          />
+          <SelectField
+            label="Control theme"
+            value={params.theme}
+            onChange={(value) => onParamsChange({ theme: value as Theme })}
+            options={THEMES.map((value) => ({ value, label: THEME_LABELS[value] }))}
           />
           <SelectField
             label="Direction"

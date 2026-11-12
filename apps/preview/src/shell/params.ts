@@ -6,6 +6,9 @@ export const hasAspectRatio = !skin.preset.endsWith('audio');
 export const COLOR_SCHEMES = ['auto', 'light', 'dark'] as const;
 export type ColorScheme = (typeof COLOR_SCHEMES)[number];
 
+export const THEMES = ['glass', 'dark', 'light', 'orange'] as const;
+export type Theme = (typeof THEMES)[number];
+
 /** `auto` follows the language, as a page with that `lang` would. */
 export const TEXT_DIRECTIONS = ['auto', 'ltr', 'rtl'] as const;
 export type TextDirection = (typeof TEXT_DIRECTIONS)[number];
@@ -25,6 +28,7 @@ export interface WorkbenchParams {
   width: number;
   ratio: AspectRatio;
   scheme: ColorScheme;
+  theme: Theme;
   dir: TextDirection;
   locale: Locale;
   autoplay: boolean;
@@ -46,6 +50,7 @@ export function readParams(query: string): WorkbenchParams {
     width: Number.isFinite(width) && width >= PLAYER_WIDTH.min ? Math.min(width, PLAYER_WIDTH.max) : defaultWidth,
     ratio: oneOf(ASPECT_RATIOS, params.get('ratio'), '16:9'),
     scheme: oneOf(COLOR_SCHEMES, params.get('scheme'), 'auto'),
+    theme: oneOf(THEMES, params.get('theme'), 'glass'),
     dir: oneOf(TEXT_DIRECTIONS, params.get('dir'), 'auto'),
     locale: oneOf(locales, params.get('locale'), 'en'),
     autoplay: flag('autoplay'),
@@ -62,6 +67,7 @@ export function writeParams(value: WorkbenchParams): string {
     width: String(value.width),
     ratio: value.ratio,
     scheme: value.scheme,
+    theme: value.theme,
     dir: value.dir,
     locale: value.locale,
     autoplay: flag(value.autoplay),
@@ -112,4 +118,5 @@ export function applyDocumentParams(value: WorkbenchParams): void {
   root.style.colorScheme = value.scheme === 'auto' ? '' : value.scheme;
   root.lang = value.locale;
   root.dir = value.dir === 'auto' ? localeDirection(value.locale) : value.dir;
+  root.dataset.deckTheme = value.theme;
 }

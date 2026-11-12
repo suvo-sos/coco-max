@@ -1602,3 +1602,77 @@
     display: none;
   }
 }
+
+/* ------------------------------------------------------------------
+   Deck themes. The preview sets `data-deck-theme` on <html> from the
+   "Control theme" option; these overrides recolour the deck's cards
+   without touching the glass recipe itself.
+   ------------------------------------------------------------------ */
+
+html[data-deck-theme='dark'] .ko-skin .vo-deck-card {
+  background-color: rgb(10 12 17 / 0.82);
+  color: #ffffff;
+}
+
+html[data-deck-theme='dark'] .ko-skin .vo-deck-mark,
+html[data-deck-theme='dark'] .ko-skin .vo-deck-rail-icon,
+html[data-deck-theme='dark'] .ko-skin .vo-deck-rail-value,
+html[data-deck-theme='dark'] .ko-skin .vo-deck-key {
+  color: #ffffff;
+}
+
+html[data-deck-theme='dark'] .ko-skin .vo-deck-tick {
+  background-color: rgb(255 255 255 / 0.26);
+}
+
+html[data-deck-theme='dark'] .ko-skin .vo-deck-rail[data-variant='window']::after {
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.75);
+}
+
+html[data-deck-theme='light'] .ko-skin .vo-deck-card {
+  background-color: rgb(255 255 255 / 0.86);
+  color: #2c2012;
+}
+
+html[data-deck-theme='light'] .ko-skin .vo-deck-mark,
+html[data-deck-theme='light'] .ko-skin .vo-deck-rail-icon,
+html[data-deck-theme='light'] .ko-skin .vo-deck-rail-value,
+html[data-deck-theme='light'] .ko-skin .vo-deck-key {
+  color: #2c2012;
+  filter: drop-shadow(0 1px 2px rgb(255 255 255 / 0.6));
+}
+
+html[data-deck-theme='light'] .ko-skin .vo-deck-tick {
+  background-color: rgb(44 32 18 / 0.26);
+}
+
+html[data-deck-theme='light'] .ko-skin .vo-deck-rail[data-variant='window']::after {
+  background-color: #2c2012;
+  box-shadow: 0 0 8px rgb(255 255 255 / 0.6);
+}
+
+html[data-deck-theme='light'] .ko-skin .vo-deck-key:hover {
+  background-color: rgb(44 32 18 / 0.12);
+}
+
+html[data-deck-theme='orange'] .ko-skin .vo-deck-card {
+  background-color: #ec5b38;
+  color: #ffffff;
+}
+
+html[data-deck-theme='orange'] .ko-skin .vo-deck-mark,
+html[data-deck-theme='orange'] .ko-skin .vo-deck-rail-icon,
+html[data-deck-theme='orange'] .ko-skin .vo-deck-rail-value,
+html[data-deck-theme='orange'] .ko-skin .vo-deck-key {
+  color: #ffffff;
+}
+
+html[data-deck-theme='orange'] .ko-skin .vo-deck-tick {
+  background-color: rgb(255 255 255 / 0.3);
+}
+
+html[data-deck-theme='orange'] .ko-skin .vo-deck-rail[data-variant='window']::after {
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.75);
+}
