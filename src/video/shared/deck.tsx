@@ -441,6 +441,7 @@ export function Deck() {
             aria-label={isActive ? undefined : card.label}
             onPointerEnter={() => setActive(card.id)}
             onFocusCapture={() => setActive(card.id)}
+            onPointerDown={() => setActive(card.id)}
             onClick={() => setActive(card.id)}
             onKeyDown={(event) => {
               if (!isActive && (event.key === 'Enter' || event.key === ' ')) {
