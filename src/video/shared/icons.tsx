@@ -17,6 +17,7 @@ import {
   AudioLinesIcon,
   CaptionsIcon,
   CaptionsOffIcon,
+  CastIcon,
   ChevronRightIcon,
   DashboardSpeed02Icon,
   FilmIcon,
@@ -85,6 +86,10 @@ export function Minimize(props: IconProps) {
 
 export function PictureInPicture2(props: IconProps) {
   return <HugeiconsIcon icon={PictureInPictureOnIcon} {...props} />;
+}
+
+export function Cast(props: IconProps) {
+  return <HugeiconsIcon icon={CastIcon} {...props} />;
 }
 
 export function Airplay(props: IconProps) {

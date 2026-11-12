@@ -1,6 +1,8 @@
 /** @jsxImportSource react */
 
 import {
+  CaptionsButton as CaptionsButtonPrimitive,
+  CastButton as CastButtonPrimitive,
   FullscreenButton as FullscreenButtonPrimitive,
   PiPButton as PiPButtonPrimitive,
   usePlaybackRateOptions,
@@ -10,11 +12,36 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 
 import { cn } from '@/lib/resolve-class-name';
 
-import { Film, Gauge, Maximize, Minimize, PictureInPicture2, Settings, Volume1, Volume2, VolumeX } from './icons';
+import {
+  Captions,
+  CaptionsOff,
+  Cast,
+  Film,
+  Gauge,
+  Maximize,
+  Minimize,
+  PictureInPicture2,
+  Settings,
+  Volume1,
+  Volume2,
+  VolumeX,
+} from './icons';
 import { PlayButton } from './play-button';
 
 /** Above this the speaker shows its second wave. */
 const LOUD = 0.7;
+
+/** The continuous rails divide into ten steps: a line every 10%, never on the ends. */
+const CONTINUOUS_TICKS = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+
+/**
+ * One line per mark, taken from the data: two renditions give two lines, six
+ * give six. Never a fixed run of lines the options do not line up with.
+ */
+function stepTicks(count: number): number[] {
+  if (count < 2) return [];
+  return Array.from({ length: count }, (_, index) => (index / (count - 1)) * 100);
+}
 
 /** `1:07`, or `1:02:07` for anything over an hour. */
 function formatTime(seconds: number): string {
@@ -29,9 +56,22 @@ function formatTime(seconds: number): string {
 }
 
 /**
- * One rail inside an opened card: the grey capsule with the cream fill and
- * the value printed in the middle, exactly like the standalone bars. The
- * pointer and the keyboard drive it through `onFraction` / `onStep`.
+ * The progress mark — a rail with a dot on it — shared by the collapsed card
+ * and the window it opens into, so both read as the same feature.
+ */
+function ProgressMark() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" aria-hidden="true">
+      <path d="M3 12h18" />
+      <circle cx="9" cy="12" r="3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/**
+ * One window inside an opened card: the scale is drawn straight onto the
+ * card and a white line marks the value. The pointer and the keyboard drive
+ * it through `onFraction` / `onStep`.
  */
 function DeckRail({
   label,
@@ -41,6 +81,8 @@ function DeckRail({
   max,
   percent,
   icon,
+  variant,
+  ticks,
   onFraction,
   onStep,
   onEdge,
@@ -52,6 +94,10 @@ function DeckRail({
   max: number;
   percent: number;
   icon?: ReactNode;
+  /** `window` drops the track: the scale and playhead are drawn on the card. */
+  variant?: 'window';
+  /** Tick positions, as percentages of the width. One line per position. */
+  ticks?: number[];
   onFraction: (fraction: number) => void;
   onStep: (direction: 1 | -1) => void;
   onEdge: (edge: 0 | 1) => void;
@@ -100,6 +146,7 @@ function DeckRail({
     <div
       ref={rootRef}
       className={'vo-deck-rail'}
+      data-variant={variant}
       role="slider"
       aria-label={label}
       aria-orientation="horizontal"
@@ -128,7 +175,9 @@ function DeckRail({
         dragging.current = false;
       }}
     >
-      <span className={'vo-deck-fill'} />
+      {ticks?.map((position) => (
+        <span key={position} className={'vo-deck-tick'} style={{ left: `clamp(1px, ${position}%, calc(100% - 1px))` }} />
+      ))}
       {icon ? <span className={'vo-deck-rail-icon'}>{icon}</span> : null}
       <span className={'vo-deck-rail-value'}>{valueText}</span>
     </div>
@@ -232,6 +281,8 @@ export function Deck() {
           min={0}
           max={100}
           percent={percent}
+          variant="window"
+          ticks={CONTINUOUS_TICKS}
           icon={level === 0 ? <VolumeX /> : level > LOUD ? <Volume2 /> : <Volume1 />}
           onFraction={setLevel}
           onStep={(direction) => setLevel(level + direction * 0.05)}
@@ -242,12 +293,7 @@ export function Deck() {
     {
       id: 'progress',
       label: 'Progress',
-      mark: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" aria-hidden="true">
-          <path d="M3 12h18" />
-          <circle cx="9" cy="12" r="3" fill="currentColor" stroke="none" />
-        </svg>
-      ),
+      mark: <ProgressMark />,
       body: (
         <DeckRail
           label="Progress"
@@ -256,6 +302,9 @@ export function Deck() {
           min={0}
           max={Math.round(duration)}
           percent={progressPercent}
+          variant="window"
+          ticks={CONTINUOUS_TICKS}
+          icon={<ProgressMark />}
           onFraction={(fraction) => seek(fraction * duration)}
           onStep={(direction) => seek(time + direction * 5)}
           onEdge={(edge) => seek(edge === 0 ? 0 : duration)}
@@ -276,6 +325,9 @@ export function Deck() {
                 min={0}
                 max={qualityLast}
                 percent={qualityLast === 0 ? 0 : Math.round((qualityIndex / qualityLast) * 100)}
+                variant="window"
+                ticks={stepTicks(qualityOptions.length)}
+                icon={<Film />}
                 onFraction={(fraction) => {
                   const option = qualityOptions[Math.round(fraction * qualityLast)];
                   if (option) quality?.setValue(option.value);
@@ -307,6 +359,9 @@ export function Deck() {
                 min={0}
                 max={rateLast}
                 percent={rateLast === 0 ? 0 : Math.round((rateIndex / rateLast) * 100)}
+                variant="window"
+                ticks={stepTicks(rateOptions.length)}
+                icon={<Gauge />}
                 onFraction={(fraction) => {
                   const option = rateOptions[Math.round(fraction * rateLast)];
                   if (option) rate?.setValue(option.value);
@@ -329,7 +384,22 @@ export function Deck() {
       label: 'Screen options',
       mark: <Settings />,
       body: (
-        <>
+        <div className={'vo-deck-keys'}>
+          <CastButtonPrimitive
+            render={<button type="button" />}
+            className={cn('vo-deck-key', 'media-cast-button')}
+          >
+            <Cast className={cn('media-button-icon', 'media-cast-button-icon')} />
+          </CastButtonPrimitive>
+
+          <CaptionsButtonPrimitive
+            render={<button type="button" />}
+            className={cn('vo-deck-key', 'media-captions-button')}
+          >
+            <Captions className={cn('media-button-icon', 'media-captions-button-off-icon')} />
+            <CaptionsOff className={cn('media-button-icon', 'media-captions-button-on-icon')} />
+          </CaptionsButtonPrimitive>
+
           <PiPButtonPrimitive
             render={<button type="button" />}
             className={cn('vo-deck-key', 'media-pip-button')}
@@ -345,14 +415,14 @@ export function Deck() {
             <Maximize className={cn('media-button-icon', 'media-fullscreen-button-enter-icon')} />
             <Minimize className={cn('media-button-icon', 'media-fullscreen-button-exit-icon')} />
           </FullscreenButtonPrimitive>
-        </>
+        </div>
       ),
     },
   ];
 
   return (
     <div className={'vo-deck'} role="toolbar" aria-label="Player controls">
-      {/* The transport is fixed: an orange square that never folds away. */}
+      {/* The transport is fixed: it never folds away or widens with the rest. */}
       <div className={'vo-deck-card'} data-feature={'play'} data-fixed={''}>
         <PlayButton className={'vo-deck-play'} iconClassName={'vo-deck-play-icon'} tooltip={false} />
       </div>

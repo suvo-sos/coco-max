@@ -755,8 +755,8 @@
   .vo-deck-card[data-fixed]
   .vo-deck-play
   .media-button-icon-base {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 
 /* Play and pause are solid shapes, not outlines. */
@@ -771,7 +771,10 @@
   stroke: none;
 }
 
-/* A rail inside a card: grey capsule, cream fill, value in the middle. */
+/* A rail inside a card. Every rail is a window: there is no surface of its
+   own — the card is the surface, and the short hairlines and the white
+   playhead are drawn straight onto it (see `[data-variant='window']`). This
+   block only handles layout, the shared type and the pointer. */
 .ko-skin .vo-deck-rail {
   position: relative;
   display: flex;
@@ -780,10 +783,9 @@
   flex: 1;
   height: 26px;
   border-radius: 999px;
-  background-color: #a8a492;
-  color: var(--vo-ink);
+  color: #ffffff;
   overflow: hidden;
-  cursor: ew-resize;
+  cursor: pointer;
   touch-action: none;
 }
 
@@ -792,29 +794,23 @@
   outline-offset: 3px;
 }
 
-.ko-skin .vo-deck-fill {
-  position: absolute;
-  inset-block: 0;
-  left: 0;
-  width: var(--deck-level, 0%);
-  background-color: #fcf2e5;
-  transition: width 90ms linear;
-}
-
 .ko-skin .vo-deck-rail-icon {
   position: absolute;
-  left: 14px;
+  left: 10px;
   z-index: 1;
   display: flex;
   align-items: center;
-  /* Full-strength ink on the grey track, over the cream fill alike. */
-  color: #1f160c;
+  padding-right: 10px;
+  /* White on glass, whatever the level is. */
+  color: #ffffff;
+  filter: drop-shadow(0 1px 2px rgb(10 12 17 / 0.45));
 }
 
 .ko-skin .vo-deck-rail-icon svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.1;
+  /* The same size as the mark on a collapsed strip. */
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
 }
 
 .ko-skin .vo-deck-rail-value {
@@ -824,50 +820,104 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgb(10 12 17 / 0.45);
 }
 
-/* The two screen keys, as round keys inside their cards. */
+/* The volume and progress cards are windows, not meters: no track inside
+   them at all. The scale and the playhead are drawn straight onto the card —
+   short hairlines across the middle, a thick white line at the level. */
+.ko-skin .vo-deck-rail[data-variant='window'] {
+  align-self: stretch;
+  height: auto;
+  /* The card is the surface; the rail starts just past the icon so the
+     scale and the playhead never sit on top of it. */
+  margin: -5px;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.ko-skin .vo-deck-rail[data-variant='window']:focus-visible {
+  outline-offset: -4px;
+}
+
+/* One hairline per mark, positioned from the data: the ticks are placed by
+   the component (one per rendition or per rate), so there are never more
+   lines than there are options. */
+.ko-skin .vo-deck-tick {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  width: 1px;
+  background-color: rgb(255 255 255 / 0.26);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.ko-skin .vo-deck-rail[data-variant='window']::after {
+  content: '';
+  position: absolute;
+  /* A short, thick, rounded marker, centred on the value's position. */
+  top: 10px;
+  bottom: 10px;
+  left: clamp(42px, var(--deck-level, 0%), calc(100% - 24px));
+  width: 6px;
+  border-radius: 999px;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.75);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* The screen card's keys: bare white glyphs on the glass, no plate of their
+   own. The highlight is a soft veil that only arrives under the pointer or
+   keyboard focus, so at rest the card shows nothing but icons. */
+.ko-skin .vo-deck-keys {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
 .ko-skin .vo-deck-key {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  /* Solid cream keys on the glass, ink glyphs: the brightest thing in the
-     opened card, so neither end of the footage can swallow them. */
-  background-color: #fcf2e5;
-  color: #2c2012;
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.55),
-    0 2px 6px rgb(0 0 0 / 0.22);
+  border-radius: 8px;
+  background-color: transparent;
+  color: #ffffff;
+  filter: drop-shadow(0 1px 2px rgb(10 12 17 / 0.45));
   cursor: pointer;
-  transition:
-    background-color 140ms ease-out,
-    transform 140ms ease-out;
+  transition: background-color 140ms ease-out;
+}
+
+.ko-skin .vo-deck-key[data-hidden] {
+  display: none;
 }
 
 .ko-skin .vo-deck-key svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   stroke-width: 2.2;
 }
 
 @media (hover: hover) {
   .ko-skin .vo-deck-key:hover {
-    background-color: #ffffff;
+    background-color: rgb(255 255 255 / 0.16);
   }
 }
 
 .ko-skin .vo-deck-key:active {
-  transform: scale(0.96);
+  background-color: rgb(255 255 255 / 0.26);
 }
 
 .ko-skin .vo-deck-key:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 4px;
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
