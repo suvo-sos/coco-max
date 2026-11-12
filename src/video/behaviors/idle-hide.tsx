@@ -94,12 +94,25 @@ export function VideoIdleHide() {
     };
 
     const onLeave = () => {
+      if (window.matchMedia('(pointer: coarse)').matches) return;
       insidePlayer = false;
+      tick();
+    };
+
+    const onTouch = (event: Event) => {
+      const touch = (event as TouchEvent).touches?.[0];
+      if (touch) {
+        pointerX = touch.clientX;
+        pointerY = touch.clientY;
+      }
+      insidePlayer = true;
+      lastRealMove = Date.now();
       tick();
     };
 
     root.addEventListener('pointermove', onMove);
     root.addEventListener('pointerdown', onDown);
+    root.addEventListener('touchstart', onTouch, { passive: true });
     root.addEventListener('pointerleave', onLeave);
     root.addEventListener('mouseleave', onLeave);
     document.addEventListener('focusin', tick);
@@ -112,6 +125,7 @@ export function VideoIdleHide() {
       window.clearInterval(interval);
       root.removeEventListener('pointermove', onMove);
       root.removeEventListener('pointerdown', onDown);
+      root.removeEventListener('touchstart', onTouch);
       root.removeEventListener('pointerleave', onLeave);
       root.removeEventListener('mouseleave', onLeave);
       document.removeEventListener('focusin', tick);
