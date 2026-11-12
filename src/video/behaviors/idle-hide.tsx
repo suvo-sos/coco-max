@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 /** How long the pointer can rest before the panel (beach and controls) drops. */
-const IDLE_MS = 1500;
+const IDLE_MS = window.matchMedia('(pointer: coarse)').matches ? 1000 : 1500;
 
 /** Only travel this far counts as real movement — a shaky hand does not. */
 const MOVE_THRESHOLD_PX = 20;
