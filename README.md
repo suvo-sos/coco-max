@@ -48,8 +48,10 @@ To deploy on every push instead, import the repo on Vercel or Netlify; `vercel.j
 - `vercel.json`, `netlify.toml`: how those hosts build the site.
 - `skin.json`: records the Video.js version the skin was created with. Keep it.
 
-## Learn more
+## License
 
-- [Build your own skin](https://videojs.org/docs/framework/react/guides/build-your-own-skin)
-- [Customize skins](https://videojs.org/docs/framework/react/guides/customize-skins)
-- [UI components](https://videojs.org/docs/framework/react/guides/ui-components)
+Coco is released under the [MIT License](./LICENSE).
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Issues and pull requests are welcome.
