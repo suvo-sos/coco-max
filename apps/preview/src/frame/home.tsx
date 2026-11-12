@@ -17,6 +17,6 @@ export interface ChosenVideo {
 export const SINGLE_VIDEO: ChosenVideo = {
   id: 'docomo-mux',
   title: 'Docomo',
-  src: 'https://stream.mux.com/pEPlVJYPMuiTQFXHuBrxKEou2702HeT1zLxkhRp0098uE.m3u8',
+  src: 'https://stream.mux.com/WgQub02xMCjA3vR8A1idUkooFLeOlW8zn65pHyCvI01c8.m3u8',
   kind: 'mux',
 };

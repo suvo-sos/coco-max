@@ -270,27 +270,6 @@ export function Deck() {
 
   const cards: { id: string; label: string; mark: ReactNode; body: ReactNode }[] = [
     {
-      id: 'volume',
-      label: 'Volume',
-      mark: <Volume2 />,
-      body: (
-        <DeckRail
-          label="Volume"
-          valueText={`${percent}`}
-          now={percent}
-          min={0}
-          max={100}
-          percent={percent}
-          variant="window"
-          ticks={CONTINUOUS_TICKS}
-          icon={level === 0 ? <VolumeX /> : level > LOUD ? <Volume2 /> : <Volume1 />}
-          onFraction={setLevel}
-          onStep={(direction) => setLevel(level + direction * 0.05)}
-          onEdge={(edge) => setLevel(edge)}
-        />
-      ),
-    },
-    {
       id: 'progress',
       label: 'Progress',
       mark: <ProgressMark />,
@@ -308,6 +287,27 @@ export function Deck() {
           onFraction={(fraction) => seek(fraction * duration)}
           onStep={(direction) => seek(time + direction * 5)}
           onEdge={(edge) => seek(edge === 0 ? 0 : duration)}
+        />
+      ),
+    },
+    {
+      id: 'volume',
+      label: 'Volume',
+      mark: <Volume2 />,
+      body: (
+        <DeckRail
+          label="Volume"
+          valueText={`${percent}`}
+          now={percent}
+          min={0}
+          max={100}
+          percent={percent}
+          variant="window"
+          ticks={CONTINUOUS_TICKS}
+          icon={level === 0 ? <VolumeX /> : level > LOUD ? <Volume2 /> : <Volume1 />}
+          onFraction={setLevel}
+          onStep={(direction) => setLevel(level + direction * 0.05)}
+          onEdge={(edge) => setLevel(edge)}
         />
       ),
     },
