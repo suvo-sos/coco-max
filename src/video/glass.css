@@ -789,7 +789,19 @@
   touch-action: none;
 }
 
-.ko-skin .vo-deck-rail:focus-visible {
+/* The rail's pointer surface. The speaker sits above it as a key of its own,
+   so pressing the icon mutes instead of nudging the level to nothing. */
+.ko-skin .vo-deck-slider {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ko-skin .vo-deck-slider:focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: 3px;
 }
@@ -797,13 +809,33 @@
 .ko-skin .vo-deck-rail-icon {
   position: absolute;
   left: 10px;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   align-items: center;
   padding-right: 10px;
   /* White on glass, whatever the level is. */
   color: #ffffff;
   filter: drop-shadow(0 1px 2px rgb(10 12 17 / 0.45));
+}
+
+/* A speaker that mutes: no plate or ring of its own, just the glyph. */
+.ko-skin .vo-deck-rail-action {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ko-skin .vo-deck-rail-action:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.ko-skin .vo-deck-rail-action[aria-pressed='true'] {
+  color: #ffffff;
 }
 
 .ko-skin .vo-deck-rail-icon svg {
@@ -837,7 +869,7 @@
   box-shadow: none;
 }
 
-.ko-skin .vo-deck-rail[data-variant='window']:focus-visible {
+.ko-skin .vo-deck-rail[data-variant='window'] .vo-deck-slider:focus-visible {
   outline-offset: -4px;
 }
 

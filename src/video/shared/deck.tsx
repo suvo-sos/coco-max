@@ -81,6 +81,7 @@ function DeckRail({
   max,
   percent,
   icon,
+  iconAction,
   variant,
   ticks,
   onFraction,
@@ -94,6 +95,8 @@ function DeckRail({
   max: number;
   percent: number;
   icon?: ReactNode;
+  /** Turns the leading icon into a real button, so it can mute on its own. */
+  iconAction?: { label: string; pressed?: boolean; onClick: () => void };
   /** `window` drops the track: the scale and playhead are drawn on the card. */
   variant?: 'window';
   /** Tick positions, as percentages of the width. One line per position. */
@@ -144,42 +147,63 @@ function DeckRail({
 
   return (
     <div
-      ref={rootRef}
       className={'vo-deck-rail'}
       data-variant={variant}
-      role="slider"
-      aria-label={label}
-      aria-orientation="horizontal"
-      aria-valuemin={min}
-      aria-valuemax={max}
-      aria-valuenow={now}
-      aria-valuetext={valueText}
-      tabIndex={0}
       style={{ '--deck-level': `${percent}%` } as CSSProperties}
-      onPointerDown={(event) => {
-        event.preventDefault();
-        dragging.current = true;
-        event.currentTarget.setPointerCapture(event.pointerId);
-        fromPointer(event.clientX);
-      }}
-      onPointerMove={(event) => {
-        if (dragging.current) fromPointer(event.clientX);
-      }}
-      onPointerUp={(event) => {
-        dragging.current = false;
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-      }}
-      onPointerCancel={() => {
-        dragging.current = false;
-      }}
     >
-      {ticks?.map((position) => (
-        <span key={position} className={'vo-deck-tick'} style={{ left: `clamp(1px, ${position}%, calc(100% - 1px))` }} />
-      ))}
-      {icon ? <span className={'vo-deck-rail-icon'}>{icon}</span> : null}
-      <span className={'vo-deck-rail-value'}>{valueText}</span>
+      {iconAction ? (
+        <button
+          type="button"
+          className={'vo-deck-rail-icon vo-deck-rail-action'}
+          aria-label={iconAction.label}
+          aria-pressed={iconAction.pressed}
+          onClick={(event) => {
+            event.stopPropagation();
+            iconAction.onClick();
+          }}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          {icon}
+        </button>
+      ) : icon ? (
+        <span className={'vo-deck-rail-icon'}>{icon}</span>
+      ) : null}
+
+      <div
+        ref={rootRef}
+        className={'vo-deck-slider'}
+        role="slider"
+        aria-label={label}
+        aria-orientation="horizontal"
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={now}
+        aria-valuetext={valueText}
+        tabIndex={0}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          dragging.current = true;
+          event.currentTarget.setPointerCapture(event.pointerId);
+          fromPointer(event.clientX);
+        }}
+        onPointerMove={(event) => {
+          if (dragging.current) fromPointer(event.clientX);
+        }}
+        onPointerUp={(event) => {
+          dragging.current = false;
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+        }}
+        onPointerCancel={() => {
+          dragging.current = false;
+        }}
+      >
+        {ticks?.map((position) => (
+          <span key={position} className={'vo-deck-tick'} style={{ left: `clamp(1px, ${position}%, calc(100% - 1px))` }} />
+        ))}
+        <span className={'vo-deck-rail-value'}>{valueText}</span>
+      </div>
     </div>
   );
 }
@@ -245,6 +269,22 @@ export function Deck() {
     setMuted(false);
   };
 
+  /**
+   * The speaker key in the volume card: mute on press, unmute on the next,
+   * restoring a little sound when the level itself had been dragged to zero.
+   */
+  const toggleMute = () => {
+    const video = document.querySelector<HTMLVideoElement>('.ko-skin video');
+    if (!video) return;
+
+    const nextMuted = !video.muted;
+    video.muted = nextMuted;
+    if (!nextMuted && video.volume === 0) video.volume = 0.5;
+
+    setMuted(nextMuted);
+    setVolume(video.volume);
+  };
+
   const seek = (seconds: number) => {
     const video = document.querySelector<HTMLVideoElement>('.ko-skin video');
     if (!video) return;
@@ -276,7 +316,7 @@ export function Deck() {
       body: (
         <DeckRail
           label="Progress"
-          valueText={formatTime(time)}
+          valueText={`${formatTime(time)}/${formatTime(duration)}`}
           now={Math.round(time)}
           min={0}
           max={Math.round(duration)}
@@ -293,7 +333,7 @@ export function Deck() {
     {
       id: 'volume',
       label: 'Volume',
-      mark: <Volume2 />,
+      mark: level === 0 ? <VolumeX /> : level > LOUD ? <Volume2 /> : <Volume1 />,
       body: (
         <DeckRail
           label="Volume"
@@ -305,6 +345,11 @@ export function Deck() {
           variant="window"
           ticks={CONTINUOUS_TICKS}
           icon={level === 0 ? <VolumeX /> : level > LOUD ? <Volume2 /> : <Volume1 />}
+          iconAction={{
+            label: muted ? 'Unmute' : 'Mute',
+            pressed: muted,
+            onClick: toggleMute,
+          }}
           onFraction={setLevel}
           onStep={(direction) => setLevel(level + direction * 0.05)}
           onEdge={(edge) => setLevel(edge)}
